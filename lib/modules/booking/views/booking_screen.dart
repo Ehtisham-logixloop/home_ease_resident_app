@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../data/models/service_provider_model.dart';
+import '../../../core/utils/routes/routes_name.dart';
 import '../../main/views/bottom_navigation.dart';
 import '../../../core/res/components/strings.dart';
 import '../../../core/res/components/custom_button.dart';
@@ -270,8 +271,9 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
                 borderRadius: BorderRadius.circular(16),
               ),
               elevation: 3,
+              color: Colors.white,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -279,8 +281,8 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
                       borderRadius: BorderRadius.circular(12),
                       child: Image.asset(
                         widget.provider.image,
-                        width: 80,
-                        height: 80,
+                        width: 65,
+                        height: 65,
                         fit: BoxFit.cover,
                       ),
                     ),

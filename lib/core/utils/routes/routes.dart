@@ -12,7 +12,9 @@ import '../../../modules/create_request/views/create_request_screen.dart';
 import '../../../modules/create_request/views/map_field_screen.dart';
 import '../../../modules/home/views/home_screen.dart';
 import '../../../modules/message/views/message_screen.dart';
+import '../../../modules/message/views/chat_screen.dart';
 import '../../../modules/profile/views/profile_screen.dart';
+import '../../../modules/profile/views/edit_profile_screen.dart';
 import '../../../modules/splash/views/splash_screen.dart';
 
 
@@ -46,6 +48,17 @@ class Routes {
         return MaterialPageRoute(builder:(BuildContext context)=> MessageScreen());
       case RoutesName.profile:
         return MaterialPageRoute(builder:(BuildContext context)=> ProfileScreen());
+      case RoutesName.editProfile:
+        return MaterialPageRoute(builder:(BuildContext context)=> EditProfileScreen());
+      case RoutesName.chat:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder:(BuildContext context)=> ChatScreen(
+            name: args['name'],
+            image: args['image'],
+            role: args['role'],
+          ),
+        );
       default:
         return MaterialPageRoute(builder: (_){
           return Scaffold(

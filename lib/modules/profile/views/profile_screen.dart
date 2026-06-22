@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/routes/routes_name.dart';
 
 import '../../main/views/bottom_navigation.dart';
-
+  
 
 
 class ProfileScreen extends StatelessWidget {
@@ -46,9 +47,12 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 40),
             ListTile(
-              leading: Icon(Icons.perm_identity_outlined),
-              title: Text("Edit Profile",style: TextStyle(fontSize: 12),),
-              trailing: Icon(Icons.arrow_forward_ios, size: 14),
+              onTap: () {
+                Navigator.pushNamed(context, RoutesName.editProfile);
+              },
+              leading: const Icon(Icons.perm_identity_outlined),
+              title: const Text("Edit Profile", style: TextStyle(fontSize: 12),),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 14),
             ),
             const Divider(),
             const ListTile(

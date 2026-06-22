@@ -30,7 +30,7 @@ class AppStrings {
   static const t='Turn on your Location';
 
   static const title="Services App";
-  static const fix="FixMate\nServices";
+  static const fix="HomeEase\nServices";
   static const it ="It is a long established fact that a reader will be distracted by the readable content of a page. I will do my best don’t worry.";
 
 }

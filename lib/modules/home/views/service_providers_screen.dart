@@ -46,16 +46,17 @@ class ServiceProvidersScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               elevation: 2,
+              color: Colors.white,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Row(
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.asset(
                         provider.image,
-                        width: 65,
-                        height: 65,
+                        width: 55,
+                        height: 55,
                         fit: BoxFit.cover,
                       ),
                     ),

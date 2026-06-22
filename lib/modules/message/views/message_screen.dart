@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/routes/routes_name.dart';
 import '../../../data/models/message_model.dart';
 import '../../../view_model/message_view_model.dart';
 import '../../main/views/bottom_navigation.dart';
@@ -14,7 +15,7 @@ class MessageScreen extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
-        title: Text(
+        title: const Text(
           "All Messages",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
@@ -27,14 +28,14 @@ class MessageScreen extends StatelessWidget {
             child: TextField(
               decoration: InputDecoration(
                 hintText: "Search here",
-                prefixIcon: Icon(Icons.search, color: Colors.blue),
+                prefixIcon: const Icon(Icons.search, color: Colors.blue),
                 suffixIcon: Container(
-                  margin: EdgeInsets.all(6),
+                  margin: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: Colors.blue,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.arrow_forward, color: Colors.white),
+                  child: const Icon(Icons.arrow_forward, color: Colors.white),
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -50,31 +51,42 @@ class MessageScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final msg = messages[index];
                 return ListTile(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      RoutesName.chat,
+                      arguments: {
+                        'name': msg.name,
+                        'image': msg.image,
+                        'role': msg.role,
+                      },
+                    );
+                  },
                   leading: CircleAvatar(
                     backgroundImage: AssetImage(msg.image),
                 ),
                 title: Text(
                     "${msg.name} (${msg.role})",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(msg.message),
                   trailing: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(msg.time,
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 12, fontWeight: FontWeight.w500)),
                       if (msg.unreadCount > 0)
                         Container(
-                          margin: EdgeInsets.only(top: 6),
-                          padding: EdgeInsets.all(6),
-                          decoration: BoxDecoration(
+                          margin: const EdgeInsets.only(top: 6),
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
                             color: Colors.blue,
                             shape: BoxShape.circle,
                           ),
                           child: Text(
                             msg.unreadCount.toString(),
-                            style: TextStyle(color: Colors.white, fontSize: 12),
+                            style: const TextStyle(color: Colors.white, fontSize: 12),
                           ),
                         ),
                     ],
