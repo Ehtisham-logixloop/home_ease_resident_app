@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../core/utils/routes/routes_name.dart';
 import '../../../data/models/message_model.dart';
 import '../../../view_model/message_view_model.dart';
-import '../../main/views/bottom_navigation.dart';
+import '../../Bottom_navigation/views/bottom_navigation.dart';
+
 
 
 

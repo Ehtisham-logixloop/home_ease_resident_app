@@ -88,6 +88,28 @@ class _SignupScreenState extends State<SignupScreen> {
                     },
                   ),
                 ),
+                CustomTextField(
+                  label: "Confirm Password",
+                  hint: "Re-enter password",
+                  controller: authController.confirmPasswordController,
+                  obscureText: _obscurePassword,
+                  validator: FormValidator.validPassword,
+                  prefixIcon:
+                  const Icon(Icons.lock_outline, color: Colors.blue),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
+                ),
                 const SizedBox(height: 40),
                 Obx(() => CustomButton(
                   text: "Sign Up",

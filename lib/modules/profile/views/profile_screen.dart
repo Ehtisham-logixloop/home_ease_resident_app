@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/utils/routes/routes_name.dart';
-
-import '../../main/views/bottom_navigation.dart';
+import '../../Bottom_navigation/views/bottom_navigation.dart';
   
 
 

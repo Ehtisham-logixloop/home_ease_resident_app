@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../data/models/service_provider_model.dart';
 import '../../../core/utils/routes/routes_name.dart';
-import '../../main/views/bottom_navigation.dart';
 import '../../../core/res/components/strings.dart';
 import '../../../core/res/components/custom_button.dart';
+import '../../Bottom_navigation/views/bottom_navigation.dart';
 
 class BookingScreen extends StatelessWidget {
   final ServiceProvider? provider;

@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/utils/routes/routes_name.dart';
 import '../../../core/utils/ui_helper.dart';
+import '../../../core/res/app_url.dart';
+import '../../../data/services/api_service.dart';
+import '../../../core/services/local_storage_service.dart';
 
 class AuthController extends GetxController {
+  final ApiService _apiService = ApiService();
+  
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -52,9 +57,31 @@ class AuthController extends GetxController {
     if (!_validateForm(loginFormKey, "Please fill in all fields correctly")) return;
     try {
       setLoading(true);
-      UIHelper.showFlushbarSuccess(Get.context!, "Login successful ");
-      clearControllers();
-      Get.offAllNamed(RoutesName.home);
+      
+      final response = await _apiService.postRequest(
+        AppUrl.login,
+        {
+          'email': emailController.text.trim(),
+          'password': passwordController.text.trim(),
+        },
+      );
+
+      if (response['success']) {
+        final data = response['data'];
+        await LocalStorageService.saveAuthData(
+          token: data['token'],
+          userId: data['user']['id'],
+          userName: data['user']['name'],
+          userEmail: data['user']['email'],
+          userRole: data['user']['role'],
+          approvalStatus: data['user']['approval_status'],
+        );
+        UIHelper.showFlushbarSuccess(Get.context!, "Login successful");
+        clearControllers();
+        Get.offAllNamed(RoutesName.home);
+      } else {
+        UIHelper.showFlushbarError(Get.context!, response['message']);
+      }
     } catch (e) {
       UIHelper.showFlushbarError(Get.context!, "Login failed: $e");
     } finally {
@@ -67,16 +94,24 @@ class AuthController extends GetxController {
     if (!_passwordsMatch()) return;
     try {
       setLoading(true);
-      final name = nameController.text.trim();
-      final email = emailController.text.trim();
-      final password = passwordController.text.trim();
+      
+      final response = await _apiService.postRequest(
+        AppUrl.register,
+        {
+          'name': nameController.text.trim(),
+          'email': emailController.text.trim(),
+          'password': passwordController.text.trim(),
+          'phone': phoneController.text.trim(),
+          'role': 'resident',
+        },
+      );
 
-      if (name.isNotEmpty && email.isNotEmpty && password.isNotEmpty) {
+      if (response['success']) {
         UIHelper.showFlushbarSuccess(Get.context!, "Signup successful");
         clearControllers();
         Get.offAllNamed(RoutesName.login);
       } else {
-        UIHelper.showFlushbarError(Get.context!, "Signup failed. Try again.");
+        UIHelper.showFlushbarError(Get.context!, response['message']);
       }
     } catch (e) {
       UIHelper.showFlushbarError(Get.context!, "Signup failed: $e");

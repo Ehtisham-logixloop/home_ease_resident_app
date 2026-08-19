@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../view_model/create_request_view_model.dart';
 import '../../utils/routes/routes_name.dart';
 import '../components/custom_text_field.dart';

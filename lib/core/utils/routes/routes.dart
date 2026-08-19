@@ -8,7 +8,6 @@ import '../../../modules/auth/views/pin_screen.dart';
 import '../../../modules/auth/views/set_password.dart';
 import '../../../modules/auth/views/signup_screen.dart';
 import '../../../modules/booking/views/booking_screen.dart';
-import '../../../modules/create_request/views/create_request_screen.dart';
 import '../../../modules/create_request/views/map_field_screen.dart';
 import '../../../modules/home/views/home_screen.dart';
 import '../../../modules/message/views/message_screen.dart';
@@ -36,8 +35,8 @@ class Routes {
         return MaterialPageRoute(builder:(BuildContext context)=> SetPassword());
       case RoutesName.pin:
         return MaterialPageRoute(builder:(BuildContext context)=> PinScreen());
-      case RoutesName.request:
-        return MaterialPageRoute(builder:(BuildContext context)=> CreateRequestScreen());
+      // case RoutesName.request:
+      //   return MaterialPageRoute(builder:(BuildContext context)=> CreateRequestScreen());
       case RoutesName.map:
         return MaterialPageRoute(builder:(BuildContext context)=> MapFieldScreen());
       case RoutesName.home:

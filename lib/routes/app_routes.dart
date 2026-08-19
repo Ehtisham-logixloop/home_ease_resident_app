@@ -9,7 +9,6 @@ abstract class Routes {
   static const forgot = _Paths.forgot;
   static const setPassword = _Paths.setPassword;
   static const home = _Paths.home;
-  static const createRequest = _Paths.createRequest;
   static const map = _Paths.map;
   static const myRequest = _Paths.myRequest;
   static const booking = _Paths.booking;

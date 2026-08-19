@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../data/models/category_model.dart';
 import '../../../data/models/service_provider_model.dart';
-import '../../main/views/bottom_navigation.dart';
+import '../../Bottom_navigation/views/bottom_navigation.dart';
 import '../views/service_providers_screen.dart';
 
 

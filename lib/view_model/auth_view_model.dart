@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../core/utils/routes/routes_name.dart';
 import '../core/utils/ui_helper.dart';
+import '../core/res/app_url.dart';
+import '../data/services/api_service.dart';
 
 class AuthViewModel extends ChangeNotifier {
+  final ApiService _apiService = ApiService();
 
   final nameController = TextEditingController();
   final emailController = TextEditingController();
@@ -17,10 +20,8 @@ class AuthViewModel extends ChangeNotifier {
   final setFormKey = GlobalKey<FormState>();
   final otpFormKey = GlobalKey<FormState>();
 
-
   bool _loading = false;
   bool get loading => _loading;
-
 
   void setLoading(bool value) {
     _loading = value;
@@ -43,6 +44,7 @@ class AuthViewModel extends ChangeNotifier {
     }
     return true;
   }
+
   bool _passwordsMatch(BuildContext context) {
     if (passwordController.text.trim() != confirmPasswordController.text.trim()) {
       UIHelper.showFlushbarError(context, "Passwords do not match");
@@ -50,6 +52,7 @@ class AuthViewModel extends ChangeNotifier {
     }
     return true;
   }
+
   Future<void> login(BuildContext context) async {
     if (!_validateForm(loginFormKey, context, "Please fill in all fields correctly")) return;
     try {
@@ -63,21 +66,30 @@ class AuthViewModel extends ChangeNotifier {
       setLoading(false);
     }
   }
+
   Future<void> signup(BuildContext context) async {
     if (!_validateForm(signupFormKey, context, "Please fill all fields correctly")) return;
     if (!_passwordsMatch(context)) return;
     try {
       setLoading(true);
-      final name = nameController.text.trim();
-      final email = emailController.text.trim();
-      final password = passwordController.text.trim();
+      
+      final response = await _apiService.postRequest(
+        AppUrl.register,
+        {
+          'name': nameController.text.trim(),
+          'email': emailController.text.trim(),
+          'password': passwordController.text.trim(),
+          'phone': phoneController.text.trim(),
+          'role': 'resident',
+        },
+      );
 
-      if (name.isNotEmpty && email.isNotEmpty && password.isNotEmpty) {
+      if (response['success']) {
         UIHelper.showFlushbarSuccess(context, "Signup successful");
         clearControllers();
         Navigator.pushReplacementNamed(context, RoutesName.login);
       } else {
-        UIHelper.showFlushbarError(context, "Signup failed. Try again.");
+        UIHelper.showFlushbarError(context, response['message']);
       }
     } catch (e) {
       UIHelper.showFlushbarError(context, "Signup failed: $e");
