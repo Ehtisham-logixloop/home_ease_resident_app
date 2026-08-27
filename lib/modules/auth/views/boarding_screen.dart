@@ -8,8 +8,11 @@ class BoardingScreen extends StatelessWidget {
   const BoardingScreen({super.key});
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : Colors.black;
+    final subColor = isDark ? Colors.white70 : Colors.grey;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -22,22 +25,22 @@ class BoardingScreen extends StatelessWidget {
                 height: 250,
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 "Solution to make\nyour life easy !",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: titleColor,
                 ),
               ),
               const SizedBox(height: 15),
-              const Text(
+              Text(
                 "Find the perfect service for your \nhome, Fast and Worry-Free",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey,
+                  color: subColor,
                   height: 1.5,
                 ),
               ),
@@ -46,7 +49,7 @@ class BoardingScreen extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3B82F6), // blue color
+                    backgroundColor: const Color(0xFF3B82F6),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -82,6 +85,7 @@ class BoardingScreen extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
+                    foregroundColor: const Color(0xFF3B82F6),
                   ),
                   onPressed: () {
                     Get.offAllNamed(RoutesName.login);

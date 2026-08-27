@@ -5,30 +5,37 @@ import '../../../view_model/message_view_model.dart';
 import '../../Bottom_navigation/views/bottom_navigation.dart';
 
 
-
-
 class MessageScreen extends StatelessWidget {
   final MessagesViewModel viewModel = MessagesViewModel();
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : Colors.black;
+    final subColor = isDark ? Colors.white60 : Colors.grey;
+    final dividerColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
+    final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final searchFill = isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade100;
     List<ChatMessage> messages = viewModel.getMessages();
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        title: const Text(
+        backgroundColor: scaffoldBg,
+        title: Text(
           "All Messages",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(color: titleColor, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        iconTheme: IconThemeData(color: titleColor),
       ),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: TextField(
+              style: TextStyle(color: titleColor),
               decoration: InputDecoration(
                 hintText: "Search here",
+                hintStyle: TextStyle(color: subColor),
                 prefixIcon: const Icon(Icons.search, color: Colors.blue),
                 suffixIcon: Container(
                   margin: const EdgeInsets.all(6),
@@ -38,8 +45,11 @@ class MessageScreen extends StatelessWidget {
                   ),
                   child: const Icon(Icons.arrow_forward, color: Colors.white),
                 ),
+                filled: true,
+                fillColor: searchFill,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
               ),
             ),
@@ -48,7 +58,7 @@ class MessageScreen extends StatelessWidget {
             child: ListView.separated(
               itemCount: messages.length,
               separatorBuilder: (context, index) =>
-                  Divider(color: Colors.grey.shade300, height: 1),
+                  Divider(color: dividerColor, height: 1),
               itemBuilder: (context, index) {
                 final msg = messages[index];
                 return ListTile(
@@ -68,15 +78,15 @@ class MessageScreen extends StatelessWidget {
                 ),
                 title: Text(
                     "${msg.name} (${msg.role})",
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.bold, color: titleColor),
                   ),
-                  subtitle: Text(msg.message),
+                  subtitle: Text(msg.message, style: TextStyle(color: subColor)),
                   trailing: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(msg.time,
-                          style: const TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w500)),
+                          style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w500, color: titleColor)),
                       if (msg.unreadCount > 0)
                         Container(
                           margin: const EdgeInsets.only(top: 6),
@@ -102,4 +112,3 @@ class MessageScreen extends StatelessWidget {
     );
   }
 }
-

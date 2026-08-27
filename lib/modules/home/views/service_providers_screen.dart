@@ -14,14 +14,20 @@ class ServiceProvidersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : Colors.black;
+    final subColor = isDark ? Colors.white60 : Colors.grey.shade600;
+    final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final cardBg = Theme.of(context).cardColor;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
         title: Text('$categoryName Services',
-            style: const TextStyle(fontWeight: FontWeight.bold)),
+            style: TextStyle(fontWeight: FontWeight.bold, color: titleColor)),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: scaffoldBg,
         elevation: 0,
+        iconTheme: IconThemeData(color: titleColor),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -46,7 +52,7 @@ class ServiceProvidersScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               elevation: 2,
-              color: Colors.white,
+              color: cardBg,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Row(
@@ -70,9 +76,10 @@ class ServiceProvidersScreen extends StatelessWidget {
                             children: [
                               Text(
                                 provider.name,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
+                                  color: titleColor,
                                 ),
                               ),
                               Row(
@@ -81,9 +88,10 @@ class ServiceProvidersScreen extends StatelessWidget {
                                   const SizedBox(width: 2),
                                   Text(
                                     '${provider.rating}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
+                                      color: titleColor,
                                     ),
                                   ),
                                 ],
@@ -95,7 +103,7 @@ class ServiceProvidersScreen extends StatelessWidget {
                             provider.profession,
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.grey.shade600,
+                              color: subColor,
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -113,7 +121,7 @@ class ServiceProvidersScreen extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: Colors.blue.withOpacity(0.1),
+                                  color: Colors.blue.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(

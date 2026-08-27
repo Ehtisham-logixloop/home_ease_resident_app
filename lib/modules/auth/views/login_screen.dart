@@ -20,8 +20,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : Colors.black;
+    final bodyColor = isDark ? Colors.white70 : Colors.grey;
+    final socialBorder = isDark ? Colors.grey.shade700 : Colors.grey.shade200;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -31,12 +35,12 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 50),
-                const Text(
+                Text(
                   "Welcome Back!",
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: titleColor,
                   ),
                 ),
                 const SizedBox(height: 50),
@@ -45,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   hint: "Enter email",
                   controller: authController.emailController,
                   keyboardType: TextInputType.emailAddress,
-                  prefixIcon: const Icon(Icons.email_outlined, color: Colors.blue),
+                  prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF3B82F6)),
                   validator: FormValidator.validEmail,
                 ),
 
@@ -55,11 +59,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: authController.passwordController,
                   obscureText: _obscurePassword,
                   validator: FormValidator.validPassword,
-                  prefixIcon: const Icon(Icons.lock_outline, color: Colors.blue),
+                  prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF3B82F6)),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.grey,
+                      color: bodyColor,
                     ),
                     onPressed: () {
                       setState(() => _obscurePassword = !_obscurePassword);
@@ -83,25 +87,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () => authController.login(),
                 )),
                 const SizedBox(height: 40),
-                const Center(
-                  child: Text("-------------------- or continue with --------------------"),
+                Center(
+                  child: Text("-------------------- or continue with --------------------",
+                      style: TextStyle(color: bodyColor)),
                 ),
                 const SizedBox(height: 40),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _socialButton("assets/icons/google.png"),
+                    _socialButton("assets/icons/google.png", socialBorder),
                     const SizedBox(width: 50),
-                    _socialButton("assets/icons/facebook.png"),
+                    _socialButton("assets/icons/facebook.png", socialBorder),
                     const SizedBox(width: 50),
-                    _socialButton("assets/icons/apple.png"),
+                    _socialButton("assets/icons/apple.png", socialBorder),
                   ],
                 ),
                 const SizedBox(height: 40),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Don't have an account?"),
+                    Text("Don't have an account?", style: TextStyle(color: bodyColor)),
                     InkWell(
                       onTap: () => Get.toNamed(RoutesName.signup),
                       child: const Text(
@@ -122,13 +127,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _socialButton(String icon) {
+  Widget _socialButton(String icon, Color borderColor) {
     return InkWell(
       onTap: () {},
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: borderColor),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Image.asset(icon, height: 24),

@@ -24,6 +24,9 @@ class AuthController extends GetxController {
 
   var loading = false.obs;
 
+  String? _resetEmail;
+  String? _resetPin;
+
   void setLoading(bool value) {
     loading.value = value;
   }
@@ -124,9 +127,25 @@ class AuthController extends GetxController {
     if (!_validateForm(forgotFormKey, "Enter your email or phone")) return false;
     try {
       setLoading(true);
-      UIHelper.showFlushbarSuccess(Get.context!, "OTP sent successfully");
-      Get.toNamed(RoutesName.pin);
-      return true;
+
+      final email = emailController.text.trim();
+      final response = await _apiService.postRequest(
+        AppUrl.forgotPassword,
+        {
+          'email': email,
+        },
+      );
+
+      if (response['success']) {
+        _resetEmail = email;
+        otpController.clear();
+        UIHelper.showFlushbarSuccess(Get.context!, response['data']['message'] ?? "OTP sent successfully");
+        Get.offNamed(RoutesName.pin);
+        return true;
+      } else {
+        UIHelper.showFlushbarError(Get.context!, response['message']);
+        return false;
+      }
     } catch (e) {
       UIHelper.showFlushbarError(Get.context!, "Failed to send OTP: $e");
       return false;
@@ -137,10 +156,33 @@ class AuthController extends GetxController {
 
   Future<void> verifyOtp() async {
     if (!_validateForm(otpFormKey, "Enter the 4-digit code")) return;
+    if (otpController.text.trim().length != 4) {
+      UIHelper.showFlushbarError(Get.context!, "Enter a valid 4-digit code");
+      return;
+    }
+    if (_resetEmail == null) {
+      UIHelper.showFlushbarError(Get.context!, "Please request a new PIN first");
+      return;
+    }
     try {
       setLoading(true);
-      UIHelper.showFlushbarSuccess(Get.context!, "OTP verified successfully");
-      Get.toNamed(RoutesName.setPassword);
+
+      final pin = otpController.text.trim();
+      final response = await _apiService.postRequest(
+        AppUrl.verifyPin,
+        {
+          'email': _resetEmail!,
+          'pin': pin,
+        },
+      );
+
+      if (response['success']) {
+        _resetPin = pin;
+        UIHelper.showFlushbarSuccess(Get.context!, "OTP verified successfully");
+        Get.offNamed(RoutesName.setPassword);
+      } else {
+        UIHelper.showFlushbarError(Get.context!, response['message']);
+      }
     } catch (e) {
       UIHelper.showFlushbarError(Get.context!, "Verification failed: $e");
     } finally {
@@ -151,13 +193,48 @@ class AuthController extends GetxController {
   Future<void> setPassword() async {
     if (!_validateForm(setFormKey, "Please fill in all fields correctly")) return;
     if (!_passwordsMatch()) return;
+    if (_resetEmail == null || _resetPin == null) {
+      UIHelper.showFlushbarError(Get.context!, "Please complete verification first");
+      return;
+    }
     try {
       setLoading(true);
-      UIHelper.showFlushbarSuccess(Get.context!, "Password reset successfully");
-      clearControllers();
-      Get.offAllNamed(RoutesName.login);
+
+      final response = await _apiService.postRequest(
+        AppUrl.resetPassword,
+        {
+          'email': _resetEmail!,
+          'pin': _resetPin!,
+          'newPassword': passwordController.text.trim(),
+        },
+      );
+
+      if (response['success']) {
+        UIHelper.showFlushbarSuccess(Get.context!, response['data']['message'] ?? "Password reset successfully");
+        clearControllers();
+        _resetEmail = null;
+        _resetPin = null;
+        Get.offAllNamed(RoutesName.login);
+      } else {
+        UIHelper.showFlushbarError(Get.context!, response['message']);
+      }
     } catch (e) {
       UIHelper.showFlushbarError(Get.context!, "Failed to set password: $e");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      setLoading(true);
+      await LocalStorageService.clearAuthData();
+      clearControllers();
+      _resetEmail = null;
+      _resetPin = null;
+      Get.offAllNamed(RoutesName.login);
+    } catch (e) {
+      UIHelper.showFlushbarError(Get.context!, "Logout failed: $e");
     } finally {
       setLoading(false);
     }

@@ -20,31 +20,38 @@ class BookingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // If we have a provider, show the new booking screen, else show my bookings
     if (provider != null && categoryName != null) {
       return NewBookingScreen(
         provider: provider!,
         categoryName: categoryName!,
       );
     }
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : Colors.black;
+    final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final cardBg = Theme.of(context).cardColor;
+    final tabBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final tabBorder = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
+    final tabUnselected = isDark ? Colors.white70 : Colors.black;
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.white,
-          title: const Text(
+          backgroundColor: scaffoldBg,
+          title: Text(
             "My Bookings",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+            style: TextStyle(color: titleColor, fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
+          iconTheme: IconThemeData(color: titleColor),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(58),
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: tabBg,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade300),
+                border: Border.all(color: tabBorder),
               ),
               child: TabBar(
                 indicator: BoxDecoration(
@@ -53,7 +60,7 @@ class BookingScreen extends StatelessWidget {
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
                 labelColor: Colors.white,
-                unselectedLabelColor: Colors.black,
+                unselectedLabelColor: tabUnselected,
                 dividerColor: Colors.transparent,
                 tabs: const [
                   Tab(text: "Up Coming"),
@@ -112,20 +119,23 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
   void _showImagePicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Theme.of(context).cardColor,
       builder: (BuildContext bc) {
+        final isDark = Theme.of(bc).brightness == Brightness.dark;
+        final titleColor = isDark ? Colors.white : Colors.black;
         return SafeArea(
           child: Wrap(
             children: <Widget>[
               ListTile(
-                  leading: const Icon(Icons.photo_library),
-                  title: const Text('Photo Library'),
+                  leading: Icon(Icons.photo_library, color: titleColor),
+                  title: Text('Photo Library', style: TextStyle(color: titleColor)),
                   onTap: () {
                     _pickImage(ImageSource.gallery);
                     Navigator.of(context).pop();
                   }),
               ListTile(
-                leading: const Icon(Icons.photo_camera),
-                title: const Text('Camera'),
+                leading: Icon(Icons.photo_camera, color: titleColor),
+                title: Text('Camera', style: TextStyle(color: titleColor)),
                 onTap: () {
                   _pickImage(ImageSource.camera);
                   Navigator.of(context).pop();
@@ -172,106 +182,119 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
       return;
     }
 
-    // Show success dialog matching the second image
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Container(
-                    width: 70,
-                    height: 70,
-                    decoration: const BoxDecoration(
-                      color: Colors.blue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.check, color: Colors.white, size: 40),
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final titleColor = isDark ? Colors.white : Colors.black;
+        final subColor = isDark ? Colors.white70 : Colors.grey;
+        return Dialog(
+          backgroundColor: Theme.of(context).cardColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
                   ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Request Send\nSuccessfully',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Congratulations\nYour Request has been Send',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close dialog
-                    Navigator.of(context).pop(); // Go back to providers list
-                    Navigator.of(context).pop(); // Go back to home screen
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                  child: Center(
+                    child: Container(
+                      width: 70,
+                      height: 70,
+                      decoration: const BoxDecoration(
+                        color: Colors.blue,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.check, color: Colors.white, size: 40),
                     ),
                   ),
-                  child: const Text(
-                    'Done',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Request Send\nSuccessfully',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: titleColor,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                Text(
+                  'Congratulations\nYour Request has been Send',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: subColor,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Done',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : Colors.black;
+    final subColor = isDark ? Colors.white60 : Colors.grey.shade600;
+    final placeholderColor = isDark ? Colors.white54 : Colors.grey;
+    final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final cardBg = Theme.of(context).cardColor;
+    final fieldBorder = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        title: const Text('Book Service',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('Book Service',
+            style: TextStyle(fontWeight: FontWeight.bold, color: titleColor)),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: scaffoldBg,
         elevation: 0,
+        iconTheme: IconThemeData(color: titleColor),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Provider Info Card
             Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
               elevation: 3,
-              color: Colors.white,
+              color: cardBg,
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
@@ -293,9 +316,10 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
                         children: [
                           Text(
                             widget.provider.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
+                              color: titleColor,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -303,7 +327,7 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
                             widget.provider.profession,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey.shade600,
+                              color: subColor,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -313,12 +337,12 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
                               const SizedBox(width: 4),
                               Text(
                                 '${widget.provider.rating}',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: titleColor),
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 '${widget.provider.yearsOfExperience} years exp',
-                                style: TextStyle(color: Colors.grey.shade600),
+                                style: TextStyle(color: subColor),
                               ),
                             ],
                           ),
@@ -339,11 +363,9 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
-            // Select Date
-            const Text(
+            Text(
               'Select Date',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: titleColor),
             ),
             const SizedBox(height: 8),
             GestureDetector(
@@ -351,7 +373,7 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: fieldBorder),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -364,7 +386,7 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
                           : 'Choose Date',
                       style: TextStyle(
                         fontSize: 16,
-                        color: selectedDate != null ? Colors.black : Colors.grey,
+                        color: selectedDate != null ? titleColor : placeholderColor,
                       ),
                     ),
                   ],
@@ -372,11 +394,9 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Select Time
-            const Text(
+            Text(
               'Select Time',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: titleColor),
             ),
             const SizedBox(height: 8),
             GestureDetector(
@@ -384,7 +404,7 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: fieldBorder),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -397,7 +417,7 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
                           : 'Choose Time',
                       style: TextStyle(
                         fontSize: 16,
-                        color: selectedTime != null ? Colors.black : Colors.grey,
+                        color: selectedTime != null ? titleColor : placeholderColor,
                       ),
                     ),
                   ],
@@ -405,11 +425,9 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Upload Picture
-            const Text(
+            Text(
               'Upload Picture',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: titleColor),
             ),
             const SizedBox(height: 8),
             GestureDetector(
@@ -418,16 +436,16 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
                 width: double.infinity,
                 height: 120,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: fieldBorder),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: _imageFile == null
                     ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.camera_alt_outlined, size: 40, color: Colors.grey),
-                    SizedBox(height: 8),
-                    Text('Upload a Picture', style: TextStyle(color: Colors.grey)),
+                  children: [
+                    Icon(Icons.camera_alt_outlined, size: 40, color: placeholderColor),
+                    const SizedBox(height: 8),
+                    Text('Upload a Picture', style: TextStyle(color: placeholderColor)),
                   ],
                 )
                     : ClipRRect(
@@ -440,11 +458,9 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // GPS Location
-            const Text(
+            Text(
               'Select GPS Location',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: titleColor),
             ),
             const SizedBox(height: 8),
             GestureDetector(
@@ -459,7 +475,7 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: fieldBorder),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -473,7 +489,7 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
                             : 'Pick location',
                         style: TextStyle(
                           fontSize: 16,
-                          color: _selectedLocation != null ? Colors.black : Colors.grey,
+                          color: _selectedLocation != null ? titleColor : placeholderColor,
                         ),
                       ),
                     ),
@@ -482,44 +498,58 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Address
-            const Text(
+            Text(
               'Service Address',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: titleColor),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _addressController,
               maxLines: 3,
+              style: TextStyle(color: titleColor),
               decoration: InputDecoration(
                 hintText: 'Enter your address',
+                hintStyle: TextStyle(color: placeholderColor),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: fieldBorder),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.blue),
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
             const SizedBox(height: 16),
-
-            // Notes (Optional)
-            const Text(
+            Text(
               'Additional Notes',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: titleColor),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _notesController,
               maxLines: 2,
+              style: TextStyle(color: titleColor),
               decoration: InputDecoration(
                 hintText: 'Any special instructions (optional)',
+                hintStyle: TextStyle(color: placeholderColor),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: fieldBorder),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.blue),
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
             const SizedBox(height: 32),
-
-            // Confirm Booking Button
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -550,10 +580,15 @@ class BookingList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : Colors.black;
+    final subColor = isDark ? Colors.white70 : Colors.grey;
+    final cardBg = Theme.of(context).cardColor;
     return ListView(
       children: [
         Card(
           margin: const EdgeInsets.all(12),
+          color: cardBg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -578,17 +613,18 @@ class BookingList extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       "Carpenter Service",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: titleColor,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       "Main Door Repair, Wall Repair.",
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: subColor),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -616,6 +652,7 @@ class BookingList extends StatelessWidget {
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.grey,
+                                foregroundColor: Colors.white,
                               ),
                               onPressed: () {},
                               child: const Text("Cancel"),
@@ -680,5 +717,3 @@ class BookingList extends StatelessWidget {
 
   }
 }
-
-

@@ -19,8 +19,12 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : Colors.black;
+    final bodyColor = isDark ? Colors.white70 : Colors.grey;
+    final socialBorder = isDark ? Colors.grey.shade700 : Colors.grey.shade200;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -30,12 +34,12 @@ class _SignupScreenState extends State<SignupScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 30),
-                const Text(
+                Text(
                   "Create an account",
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: titleColor,
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -46,7 +50,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   validator: (val) =>
                       FormValidator.notEmpty(val, fieldName: "Name"),
                   prefixIcon: const Icon(Icons.person_outline,
-                      color: Colors.blue),
+                      color: Color(0xFF3B82F6)),
                 ),
                 CustomTextField(
                   label: "Email",
@@ -55,7 +59,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   keyboardType: TextInputType.emailAddress,
                   validator: FormValidator.validEmail,
                   prefixIcon: const Icon(Icons.email_outlined,
-                      color: Colors.blue),
+                      color: Color(0xFF3B82F6)),
                 ),
                 CustomTextField(
                   label: "Phone number",
@@ -64,7 +68,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   keyboardType: TextInputType.phone,
                   validator: FormValidator.validPhone,
                   prefixIcon: const Icon(Icons.phone_outlined,
-                      color: Colors.blue),
+                      color: Color(0xFF3B82F6)),
                 ),
                 CustomTextField(
                   label: "Password",
@@ -73,13 +77,13 @@ class _SignupScreenState extends State<SignupScreen> {
                   obscureText: _obscurePassword,
                   validator: FormValidator.validPassword,
                   prefixIcon:
-                  const Icon(Icons.lock_outline, color: Colors.blue),
+                  const Icon(Icons.lock_outline, color: Color(0xFF3B82F6)),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
                           ? Icons.visibility_off
                           : Icons.visibility,
-                      color: Colors.grey,
+                      color: bodyColor,
                     ),
                     onPressed: () {
                       setState(() {
@@ -95,13 +99,13 @@ class _SignupScreenState extends State<SignupScreen> {
                   obscureText: _obscurePassword,
                   validator: FormValidator.validPassword,
                   prefixIcon:
-                  const Icon(Icons.lock_outline, color: Colors.blue),
+                  const Icon(Icons.lock_outline, color: Color(0xFF3B82F6)),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
                           ? Icons.visibility_off
                           : Icons.visibility,
-                      color: Colors.grey,
+                      color: bodyColor,
                     ),
                     onPressed: () {
                       setState(() {
@@ -117,23 +121,23 @@ class _SignupScreenState extends State<SignupScreen> {
                   onPressed: () => authController.signup(),
                 )),
                 const SizedBox(height: 30),
-                const Center(child: Text("or continue with")),
+                Center(child: Text("or continue with", style: TextStyle(color: bodyColor))),
                 const SizedBox(height: 26),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _socialButton("assets/icons/google.png"),
+                    _socialButton("assets/icons/google.png", socialBorder),
                     const SizedBox(width: 50),
-                    _socialButton("assets/icons/facebook.png"),
+                    _socialButton("assets/icons/facebook.png", socialBorder),
                     const SizedBox(width: 50),
-                    _socialButton("assets/icons/apple.png"),
+                    _socialButton("assets/icons/apple.png", socialBorder),
                   ],
                 ),
                 const SizedBox(height: 30),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Already have an account?"),
+                    Text("Already have an account?", style: TextStyle(color: bodyColor)),
                     InkWell(
                       onTap: () => Get.offAllNamed(RoutesName.login),
                       child: const Text(
@@ -154,13 +158,13 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _socialButton(String icon) {
+  Widget _socialButton(String icon, Color borderColor) {
     return InkWell(
       onTap: () {},
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: borderColor),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Image.asset(icon, height: 24),

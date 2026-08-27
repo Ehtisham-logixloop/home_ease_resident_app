@@ -109,8 +109,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textBody = isDark ? Colors.white : Colors.black;
+    final subColor = isDark ? Colors.white60 : Colors.black54;
+    final tileColor = isDark ? const Color(0xFF2A2A2A) : Colors.grey.shade200;
+    final searchFill = isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade100;
+    final cardBg = Theme.of(context).cardColor;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -125,12 +131,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("My Location",
-                          style: TextStyle(color: Colors.black54)),
+                      Text("My Location",
+                          style: TextStyle(color: subColor)),
                       Text(
                         location,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold, color: textBody),
                       ),
                     ],
                   )
@@ -139,9 +145,11 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 20),
               TextField(
                 controller: _searchController,
+                style: TextStyle(color: textBody),
                 decoration: InputDecoration(
                   hintText: "Search service (e.g., Plumber)",
-                  prefixIcon: const Icon(Icons.search),
+                  hintStyle: TextStyle(color: subColor),
+                  prefixIcon: Icon(Icons.search, color: subColor),
                   suffixIcon: Container(
                     margin: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -151,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: const Icon(Icons.arrow_forward, color: Colors.white),
                   ),
                   filled: true,
-                  fillColor: Colors.grey.shade100,
+                  fillColor: searchFill,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -160,9 +168,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               if (_searchController.text.isNotEmpty && filteredCategories.isNotEmpty) ...[
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   "Search Results",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textBody),
                 ),
                 const SizedBox(height: 16),
                 GridView.builder(
@@ -186,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: 60,
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
+                              color: tileColor,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Image.asset(category.images),
@@ -194,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 6),
                           Text(
                             category.name,
-                            style: const TextStyle(fontSize: 10),
+                            style: TextStyle(fontSize: 10, color: textBody),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -233,18 +241,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: TextStyle(color: Colors.white70),
                             ),
                             SizedBox(height: 12),
-                            ElevatedButton(
-                              onPressed: null,
-                              style: ButtonStyle(
-                                backgroundColor:
-                                MaterialStatePropertyAll(Colors.white),
-                              ),
-                              child: Text(
-                                "Order now",
-                                style:
-                                TextStyle(color: Colors.blue, fontSize: 12),
-                              ),
-                            ),
                           ],
                         ),
                       ),
@@ -254,9 +250,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 30),
-                const Text(
+                Text(
                   "Popular Services",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textBody),
                 ),
                 const SizedBox(height: 16),
                 GridView.builder(
@@ -280,7 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: 60,
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
+                              color: tileColor,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Image.asset(category.images),
@@ -288,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 6),
                           Text(
                             category.name,
-                            style: const TextStyle(fontSize: 10),
+                            style: TextStyle(fontSize: 10, color: textBody),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -305,4 +301,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-

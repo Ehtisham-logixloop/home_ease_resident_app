@@ -23,6 +23,9 @@ class AuthViewModel extends ChangeNotifier {
   bool _loading = false;
   bool get loading => _loading;
 
+  String? _resetEmail;
+  String? _resetPin;
+
   void setLoading(bool value) {
     _loading = value;
     notifyListeners();
@@ -101,9 +104,24 @@ class AuthViewModel extends ChangeNotifier {
     if (!_validateForm(forgotFormKey, context, "Enter your email or phone")) return false;
     try {
       setLoading(true);
-      UIHelper.showFlushbarSuccess(context, "OTP sent successfully");
-      Navigator.pushReplacementNamed(context, RoutesName.pin);
-      return true;
+
+      final email = emailController.text.trim();
+      final response = await _apiService.postRequest(
+        AppUrl.forgotPassword,
+        {
+          'email': email,
+        },
+      );
+
+      if (response['success']) {
+        _resetEmail = email;
+        UIHelper.showFlushbarSuccess(context, response['data']['message'] ?? "OTP sent successfully");
+        Navigator.pushReplacementNamed(context, RoutesName.pin);
+        return true;
+      } else {
+        UIHelper.showFlushbarError(context, response['message']);
+        return false;
+      }
     } catch (e) {
       UIHelper.showFlushbarError(context, "Failed to send OTP: $e");
       return false;
@@ -119,14 +137,29 @@ class AuthViewModel extends ChangeNotifier {
       UIHelper.showFlushbarError(context, "Enter a valid $length-digit code");
       return;
     }
+    if (_resetEmail == null) {
+      UIHelper.showFlushbarError(context, "Please request a new PIN first");
+      return;
+    }
     try {
       setLoading(true);
-      if (otpController.text.trim() == "1234") {
+
+      final pin = otpController.text.trim();
+      final response = await _apiService.postRequest(
+        AppUrl.verifyPin,
+        {
+          'email': _resetEmail!,
+          'pin': pin,
+        },
+      );
+
+      if (response['success']) {
+        _resetPin = pin;
         UIHelper.showFlushbarSuccess(context, "OTP verified");
         clearControllers();
         Navigator.pushReplacementNamed(context, RoutesName.password);
       } else {
-        UIHelper.showFlushbarError(context, "Invalid OTP");
+        UIHelper.showFlushbarError(context, response['message']);
       }
     } catch (e) {
       UIHelper.showFlushbarError(context, "OTP verification failed: $e");
@@ -137,11 +170,31 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> setPassword(BuildContext context) async {
     if (!_validateForm(setFormKey, context, "Passwords do not match or are invalid")) return;
     if (!_passwordsMatch(context)) return;
+    if (_resetEmail == null || _resetPin == null) {
+      UIHelper.showFlushbarError(context, "Please complete verification first");
+      return;
+    }
     try {
       setLoading(true);
-      UIHelper.showFlushbarSuccess(context, "Password reset successful");
-      clearControllers();
-      //Navigator.pushReplacementNamed(context, RoutesName.login);
+
+      final response = await _apiService.postRequest(
+        AppUrl.resetPassword,
+        {
+          'email': _resetEmail!,
+          'pin': _resetPin!,
+          'newPassword': passwordController.text.trim(),
+        },
+      );
+
+      if (response['success']) {
+        UIHelper.showFlushbarSuccess(context, response['data']['message'] ?? "Password reset successful");
+        clearControllers();
+        _resetEmail = null;
+        _resetPin = null;
+        Navigator.pushReplacementNamed(context, RoutesName.login);
+      } else {
+        UIHelper.showFlushbarError(context, response['message']);
+      }
     } catch (e) {
       UIHelper.showFlushbarError(context, "Failed to reset password: $e");
     } finally {

@@ -20,7 +20,6 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
 
-  // Sample chat messages
   final List<Map<String, dynamic>> _messages = [
     {'text': 'Hello! How can I help you?', 'isMe': false, 'time': '10:00 AM'},
     {'text': 'Hi, I need a plumber for my kitchen sink.', 'isMe': true, 'time': '10:02 AM'},
@@ -43,12 +42,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : Colors.black;
+    final subColor = isDark ? Colors.white70 : Colors.grey;
+    final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final otherBubble = isDark ? const Color(0xFF2A2A2A) : Colors.grey[200];
+    final borderCol = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
+    final inputFill = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: scaffoldBg,
         elevation: 1,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: titleColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Row(
@@ -63,11 +69,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   Text(
                     widget.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: titleColor),
                   ),
                   Text(
                     widget.role,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    style: TextStyle(color: subColor, fontSize: 12),
                   ),
                 ],
               ),
@@ -95,7 +101,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: msg['isMe'] ? Colors.blue : Colors.grey[200],
+                      color: msg['isMe'] ? Colors.blue : otherBubble,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -104,7 +110,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         Text(
                           msg['text'],
                           style: TextStyle(
-                            color: msg['isMe'] ? Colors.white : Colors.black87,
+                            color: msg['isMe'] ? Colors.white : titleColor,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -113,7 +119,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           style: TextStyle(
                             fontSize: 10,
                             color:
-                                msg['isMe'] ? Colors.white70 : Colors.black54,
+                                msg['isMe'] ? Colors.white70 : subColor,
                           ),
                         ),
                       ],
@@ -130,15 +136,19 @@ class _ChatScreenState extends State<ChatScreen> {
                 Expanded(
                   child: TextField(
                     controller: _messageController,
+                    style: TextStyle(color: titleColor),
                     decoration: InputDecoration(
                       hintText: 'Type a message...',
+                      hintStyle: TextStyle(color: subColor),
+                      filled: true,
+                      fillColor: inputFill,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: borderCol),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: borderCol),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
@@ -174,4 +184,3 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 }
-

@@ -1,6 +1,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../core/services/local_storage_service.dart';
 import '../../../core/res/components/strings.dart';
 import '../../../core/utils/routes/routes_name.dart';
 
@@ -12,20 +13,39 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 class _SplashScreenState extends State<SplashScreen> {
+  Timer? _navigationTimer;
+
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds:8), () {
-      Navigator.pushReplacementNamed(
+    _navigationTimer = Timer(const Duration(seconds: 2), () async {
+      final isLoggedIn = await LocalStorageService.isLoggedIn();
+      final initialRoute = isLoggedIn
+          ? RoutesName.home
+          : RoutesName.login;
+
+      if (!mounted) return;
+
+      Navigator.pushNamedAndRemoveUntil(
         context,
-       RoutesName.boarding
+        initialRoute,
+        (route) => false,
       );
     });
   }
+
+  @override
+  void dispose() {
+    _navigationTimer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -37,11 +57,11 @@ class _SplashScreenState extends State<SplashScreen> {
               width: 60,
             ),
             const SizedBox(width: 12),
-            const Text(AppStrings.fix,
+            Text(AppStrings.fix,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: textColor,
               ),
             ),
           ],
@@ -50,4 +70,3 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
-

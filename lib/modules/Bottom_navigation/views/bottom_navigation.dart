@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-
+import '../../../core/res/components/colors.dart';
 import '../../../core/utils/routes/routes_name.dart';
 
 class CustomBottomBar extends StatelessWidget {
@@ -10,14 +10,21 @@ class CustomBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final unselectedColor = isDark ? Colors.white60 : Colors.black54;
+    final shadowColor = isDark
+        ? Colors.black.withValues(alpha: 0.5)
+        : Colors.black.withValues(alpha: 0.1);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: bgColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: shadowColor,
             blurRadius: 10,
             spreadRadius: 1,
           ),
@@ -28,9 +35,9 @@ class CustomBottomBar extends StatelessWidget {
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           currentIndex: currentIndex,
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.blue,
-          unselectedItemColor: Colors.black54,
+          backgroundColor: bgColor,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: unselectedColor,
           elevation: 0,
           onTap: (index) {
             switch (index) {
@@ -54,7 +61,8 @@ class CustomBottomBar extends StatelessWidget {
           },
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-            BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: "Booking"),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.calendar_today), label: "Booking"),
             BottomNavigationBarItem(icon: Icon(Icons.message), label: "Messages"),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
           ],
@@ -63,4 +71,5 @@ class CustomBottomBar extends StatelessWidget {
     );
   }
 }
+
 

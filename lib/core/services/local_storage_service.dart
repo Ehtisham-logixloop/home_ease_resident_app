@@ -8,6 +8,7 @@ class LocalStorageService {
   static const String _userEmailKey = 'user_email';
   static const String _userRoleKey = 'user_role';
   static const String _approvalStatusKey = 'approval_status';
+  static const String _themeModeKey = 'theme_mode';
 
   static Future<void> saveAuthData({
     required String token,
@@ -33,11 +34,26 @@ class LocalStorageService {
 
   static Future<void> clearAuthData() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await prefs.remove(_tokenKey);
+    await prefs.remove(_userIdKey);
+    await prefs.remove(_userNameKey);
+    await prefs.remove(_userEmailKey);
+    await prefs.remove(_userRoleKey);
+    await prefs.remove(_approvalStatusKey);
   }
 
   static Future<bool> isLoggedIn() async {
     final token = await getToken();
-    return token != null;
+    return token != null && token.trim().isNotEmpty;
+  }
+
+  static Future<void> saveThemeMode(String mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_themeModeKey, mode);
+  }
+
+  static Future<String?> getThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_themeModeKey);
   }
 }
