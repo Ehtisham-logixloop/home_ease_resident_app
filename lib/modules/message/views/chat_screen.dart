@@ -1,16 +1,26 @@
 
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../core/services/local_storage_service.dart';
+import '../../../view_model/message_view_model.dart';
 
 class ChatScreen extends StatefulWidget {
   final String name;
   final String image;
   final String role;
+  final String? bookingId;
+  final String? providerId;
+  final String? userId;
 
   const ChatScreen({
     super.key,
     required this.name,
     required this.image,
     required this.role,
+    this.bookingId,
+    this.providerId,
+    this.userId,
   });
 
   @override
@@ -19,25 +29,78 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  String? _currentUserId;
+  Timer? _refreshTimer;
+  bool _isSending = false;
 
-  final List<Map<String, dynamic>> _messages = [
-    {'text': 'Hello! How can I help you?', 'isMe': false, 'time': '10:00 AM'},
-    {'text': 'Hi, I need a plumber for my kitchen sink.', 'isMe': true, 'time': '10:02 AM'},
-    {'text': 'Sure, I can come at 2 PM today.', 'isMe': false, 'time': '10:05 AM'},
-    {'text': 'Perfect, see you then!', 'isMe': true, 'time': '10:06 AM'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
 
-  void _sendMessage() {
-    if (_messageController.text.trim().isNotEmpty) {
-      setState(() {
-        _messages.add({
-          'text': _messageController.text.trim(),
-          'isMe': true,
-          'time': 'Now',
-        });
-        _messageController.clear();
-      });
+  Future<void> _init() async {
+    _currentUserId = widget.userId ?? await LocalStorageService.getUserIdString();
+    final effectiveBookingId = widget.bookingId ?? '1';
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final vm = Provider.of<MessagesViewModel>(context, listen: false);
+      vm.fetchChatMessages(effectiveBookingId);
+    });
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (mounted) {
+        final vm = Provider.of<MessagesViewModel>(context, listen: false);
+        vm.fetchChatMessages(widget.bookingId ?? '1');
+      }
+    });
+  }
+
+  bool _isMessageFromMe(dynamic msg) {
+    if (_currentUserId == null || msg.senderId == null) {
+      return msg.name == 'Me' || msg.senderId == 'me';
     }
+    return msg.senderId?.toString() == _currentUserId.toString();
+  }
+
+  Future<void> _sendMessage() async {
+    final text = _messageController.text.trim();
+    if (text.isEmpty || _isSending) return;
+
+    setState(() => _isSending = true);
+    final vm = Provider.of<MessagesViewModel>(context, listen: false);
+
+    final senderId = _currentUserId ?? 'resident_user';
+    final receiverId = widget.providerId ?? 'provider_user';
+    final bookingId = widget.bookingId ?? '1';
+
+    final ok = await vm.sendMessage(
+      bookingId: bookingId,
+      senderId: senderId,
+      receiverId: receiverId,
+      content: text,
+    );
+
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(vm.errorMessage ?? 'Failed to send message')),
+      );
+    } else {
+      _messageController.clear();
+      _scrollToBottom();
+    }
+    setState(() => _isSending = false);
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   @override
@@ -49,6 +112,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final otherBubble = isDark ? const Color(0xFF2A2A2A) : Colors.grey[200];
     final borderCol = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
     final inputFill = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: scaffoldBg,
@@ -84,47 +148,55 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              reverse: true,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final msg = _messages[_messages.length - 1 - index];
-                return Align(
-                  alignment:
-                      msg['isMe'] ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.7,
-                    ),
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: msg['isMe'] ? Colors.blue : otherBubble,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          msg['text'],
-                          style: TextStyle(
-                            color: msg['isMe'] ? Colors.white : titleColor,
-                          ),
+            child: Consumer<MessagesViewModel>(
+              builder: (context, vm, child) {
+                if (vm.isLoading && vm.messages.isEmpty) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final messages = vm.messages;
+                return ListView.builder(
+                  controller: _scrollController,
+                  reverse: true,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final msg = messages[messages.length - 1 - index];
+                    final isMe = _isMessageFromMe(msg);
+                    return Align(
+                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.7,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          msg['time'],
-                          style: TextStyle(
-                            fontSize: 10,
-                            color:
-                                msg['isMe'] ? Colors.white70 : subColor,
-                          ),
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isMe ? Colors.blue : otherBubble,
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                      ],
-                    ),
-                  ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              msg.content ?? msg.message,
+                              style: TextStyle(
+                                color: isMe ? Colors.white : titleColor,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              msg.time,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: isMe ? Colors.white70 : subColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -166,7 +238,14 @@ class _ChatScreenState extends State<ChatScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.send, color: Colors.white),
+                    icon: _isSending
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2),
+                          )
+                        : const Icon(Icons.send, color: Colors.white),
                     onPressed: _sendMessage,
                   ),
                 ),
@@ -180,7 +259,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 }

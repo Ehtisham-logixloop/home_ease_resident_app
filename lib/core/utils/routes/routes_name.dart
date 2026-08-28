@@ -14,6 +14,7 @@ class RoutesName {
   static const String message = 'message_screen';
   static const String profile = 'profile_screen';
   static const String chat = 'chat_screen';
+  static const String notifications = 'notification_screen';
   static const String editProfile = 'edit_profile_screen';
 
   static const String  setPassword = 'password_screen';

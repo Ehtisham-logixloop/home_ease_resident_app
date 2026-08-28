@@ -206,6 +206,7 @@ class AuthController extends GetxController {
           'email': _resetEmail!,
           'pin': _resetPin!,
           'newPassword': passwordController.text.trim(),
+          'confirmPassword': confirmPasswordController.text.trim(),
         },
       );
 
@@ -214,7 +215,11 @@ class AuthController extends GetxController {
         clearControllers();
         _resetEmail = null;
         _resetPin = null;
-        Get.offAllNamed(RoutesName.login);
+        if (await LocalStorageService.isLoggedIn()) {
+          Get.offAllNamed(RoutesName.home);
+        } else {
+          Get.offAllNamed(RoutesName.login);
+        }
       } else {
         UIHelper.showFlushbarError(Get.context!, response['message']);
       }

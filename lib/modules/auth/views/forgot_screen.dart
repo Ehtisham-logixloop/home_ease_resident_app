@@ -48,7 +48,7 @@ class ForgetScreen extends StatelessWidget {
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 60),
+                const SizedBox(height: 30),
                 CustomTextField(
                   label: "Email or Phone number",
                   hint: "Enter email or number...",
@@ -61,7 +61,7 @@ class ForgetScreen extends StatelessWidget {
                     color: Color(0xFF3B82F6),
                   ),
                 ),
-                const SizedBox(height: 80),
+                const SizedBox(height: 50),
                 Obx(
                   () => CustomButton(
                     text: authController.loading.value ? "Please wait..." : "Continue",

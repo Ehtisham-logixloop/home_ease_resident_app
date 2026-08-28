@@ -2,10 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
+import '../../../core/services/local_storage_service.dart';
 import '../../../data/models/service_provider_model.dart';
 import '../../../core/utils/routes/routes_name.dart';
-import '../../../core/res/components/strings.dart';
-import '../../../core/res/components/custom_button.dart';
 import '../../Bottom_navigation/views/bottom_navigation.dart';
 
 class BookingScreen extends StatelessWidget {
@@ -29,7 +28,6 @@ class BookingScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final titleColor = isDark ? Colors.white : Colors.black;
     final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
-    final cardBg = Theme.of(context).cardColor;
     final tabBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final tabBorder = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
     final tabUnselected = isDark ? Colors.white70 : Colors.black;
@@ -574,9 +572,126 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
   }
 }
 
+class BookingItem {
+  final String bookingId;
+  final String providerId;
+  final String providerName;
+  final String providerRole;
+  final String providerImage;
+  final String serviceTitle;
+  final String serviceDetail;
+  final String date;
+  final String time;
+  final String status;
+  final bool bookingAccepted;
+
+  const BookingItem({
+    required this.bookingId,
+    required this.providerId,
+    required this.providerName,
+    required this.providerRole,
+    required this.providerImage,
+    required this.serviceTitle,
+    required this.serviceDetail,
+    required this.date,
+    required this.time,
+    required this.status,
+    this.bookingAccepted = false,
+  });
+}
+
 class BookingList extends StatelessWidget {
   final String status;
   const BookingList({super.key, required this.status});
+
+  List<BookingItem> _demoBookings(String status) {
+    if (status == "Up Coming") {
+      return const [
+        BookingItem(
+          bookingId: '101',
+          providerId: 'p101',
+          providerName: 'Saad Mughal',
+          providerRole: 'Carpenter',
+          providerImage: 'assets/images/message1.png',
+          serviceTitle: 'Carpenter Service',
+          serviceDetail: 'Main Door Repair, Wall Repair.',
+          date: 'Mon - Oct 2, 2025',
+          time: '11.00 AM',
+          status: 'Up Coming',
+          bookingAccepted: true,
+        ),
+        BookingItem(
+          bookingId: '102',
+          providerId: 'p102',
+          providerName: 'Ehtisham',
+          providerRole: 'Electrician',
+          providerImage: 'assets/images/message2.png',
+          serviceTitle: 'Electrician Service',
+          serviceDetail: 'Wiring repair, new switches.',
+          date: 'Tue - Oct 3, 2025',
+          time: '2.00 PM',
+          status: 'Up Coming',
+          bookingAccepted: true,
+        ),
+      ];
+    } else if (status == "In Progress") {
+      return const [
+        BookingItem(
+          bookingId: '201',
+          providerId: 'p201',
+          providerName: 'Nahil Shafiq',
+          providerRole: 'Beautification',
+          providerImage: 'assets/images/message3.png',
+          serviceTitle: 'Home Cleaning Service',
+          serviceDetail: 'Full apartment deep cleaning.',
+          date: 'Today',
+          time: '10.00 AM',
+          status: 'In Progress',
+          bookingAccepted: true,
+        ),
+      ];
+    } else {
+      return const [
+        BookingItem(
+          bookingId: '301',
+          providerId: 'p301',
+          providerName: 'Hamid',
+          providerRole: 'Cleaner',
+          providerImage: 'assets/images/message5.png',
+          serviceTitle: 'AC Repair',
+          serviceDetail: 'AC cooling problem fixed.',
+          date: 'Last week',
+          time: '4.00 PM',
+          status: 'Completed',
+          bookingAccepted: true,
+        ),
+      ];
+    }
+  }
+
+  Future<void> _openChat(BuildContext context, BookingItem item) async {
+    if (!item.bookingAccepted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Booking not yet accepted by the provider')),
+      );
+      return;
+    }
+    final String? currentUserId = await LocalStorageService.getUserIdString();
+    if (context.mounted) {
+      Navigator.pushNamed(
+        context,
+        RoutesName.chat,
+        arguments: {
+          'name': item.providerName,
+          'image': item.providerImage,
+          'role': item.providerRole,
+          'bookingId': item.bookingId,
+          'providerId': item.providerId,
+          'userId': currentUserId,
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -584,9 +699,12 @@ class BookingList extends StatelessWidget {
     final titleColor = isDark ? Colors.white : Colors.black;
     final subColor = isDark ? Colors.white70 : Colors.grey;
     final cardBg = Theme.of(context).cardColor;
-    return ListView(
-      children: [
-        Card(
+    final bookings = _demoBookings(status);
+    return ListView.builder(
+      itemCount: bookings.length,
+      itemBuilder: (context, index) {
+        final item = bookings[index];
+        return Card(
           margin: const EdgeInsets.all(12),
           color: cardBg,
           shape: RoundedRectangleBorder(
@@ -613,35 +731,56 @@ class BookingList extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "Carpenter Service",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: titleColor,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.serviceTitle,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: titleColor,
+                            ),
+                          ),
+                        ),
+                        if (item.bookingAccepted)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              "Accepted",
+                              style: TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "Main Door Repair, Wall Repair.",
+                      item.serviceDetail,
                       style: TextStyle(color: subColor),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "By: ${item.providerName} (${item.providerRole})",
+                      style: TextStyle(fontSize: 12, color: subColor, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 12),
                     Row(
-                      children: const [
-                        Icon(Icons.calendar_today,
-                            size: 18, color: Colors.blue),
-                        SizedBox(width: 6),
-                        Text("Mon - Oct 2, 2025"),
+                      children: [
+                        const Icon(Icons.calendar_today, size: 18, color: Colors.blue),
+                        const SizedBox(width: 6),
+                        Text(item.date, style: TextStyle(color: titleColor)),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Row(
-                      children: const [
-                        Icon(Icons.access_time,
-                            size: 18, color: Colors.blue),
-                        SizedBox(width: 6),
-                        Text("11.00 AM"),
+                      children: [
+                        const Icon(Icons.access_time, size: 18, color: Colors.blue),
+                        const SizedBox(width: 6),
+                        Text(item.time, style: TextStyle(color: titleColor)),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -654,7 +793,11 @@ class BookingList extends StatelessWidget {
                                 backgroundColor: Colors.grey,
                                 foregroundColor: Colors.white,
                               ),
-                              onPressed: () {},
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Booking cancelled')),
+                                );
+                              },
                               child: const Text("Cancel"),
                             ),
                           ),
@@ -664,7 +807,7 @@ class BookingList extends StatelessWidget {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
                               ),
-                              onPressed: () {},
+                              onPressed: () => _openChat(context, item),
                               child: const Text("Message"),
                             ),
                           ),
@@ -674,46 +817,90 @@ class BookingList extends StatelessWidget {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
                               ),
-                              onPressed: () {},
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Work started')),
+                                );
+                              },
                               child: const Text("Start Work"),
                             ),
                           ),
                         ],
                       )
                     ] else if (status == "In Progress") ...[
-                      Center(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            minimumSize: const Size(300, 50),
-                            textStyle: const TextStyle(fontSize: 18),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                minimumSize: const Size(0, 46),
+                                textStyle: const TextStyle(fontSize: 14),
+                              ),
+                              onPressed: () => _openChat(context, item),
+                              child: const Text("Message"),
+                            ),
                           ),
-                          onPressed: () {},
-                          child: const Text("Done"),
-                        ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 2,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                minimumSize: const Size(0, 46),
+                                textStyle: const TextStyle(fontSize: 16),
+                              ),
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Service marked as done!')),
+                                );
+                              },
+                              child: const Text("Done"),
+                            ),
+                          ),
+                        ],
                       )
                     ] else if (status == "Completed") ...[
-                      Center(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            minimumSize: const Size(300, 50),
-                            textStyle: const TextStyle(fontSize: 18),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                minimumSize: const Size(0, 46),
+                                textStyle: const TextStyle(fontSize: 14),
+                              ),
+                              onPressed: () => _openChat(context, item),
+                              child: const Text("Message"),
+                            ),
                           ),
-                          onPressed: () {},
-                          child: const Text("Book Again"),
-                        ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 2,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                minimumSize: const Size(0, 46),
+                                textStyle: const TextStyle(fontSize: 16),
+                              ),
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Book again feature coming soon')),
+                                );
+                              },
+                              child: const Text("Book Again"),
+                            ),
+                          ),
+                        ],
                       )
                     ]
                   ],
                 ),
               )
-
             ],
           ),
-        ),
-      ],
+        );
+      },
     );
-
   }
 }

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:home_ease_resident_app/core/utils/routes/routes_name.dart';
 import '../../../modules/auth/views/boarding_screen.dart';
@@ -12,6 +11,7 @@ import '../../../modules/create_request/views/map_field_screen.dart';
 import '../../../modules/home/views/home_screen.dart';
 import '../../../modules/message/views/message_screen.dart';
 import '../../../modules/message/views/chat_screen.dart';
+import '../../../modules/message/views/notification_screen.dart';
 import '../../../modules/profile/views/profile_screen.dart';
 import '../../../modules/profile/views/edit_profile_screen.dart';
 import '../../../modules/splash/views/splash_screen.dart';
@@ -42,9 +42,20 @@ class Routes {
       case RoutesName.home:
         return MaterialPageRoute(builder:(BuildContext context)=> HomeScreen());
       case RoutesName.booking:
+        if (settings.arguments is Map<String, dynamic>) {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (BuildContext context) => BookingScreen(
+              provider: args['provider'],
+              categoryName: args['categoryName'],
+            ),
+          );
+        }
         return MaterialPageRoute(builder:(BuildContext context)=> BookingScreen());
       case RoutesName.message:
         return MaterialPageRoute(builder:(BuildContext context)=> MessageScreen());
+      case RoutesName.notifications:
+        return MaterialPageRoute(builder:(BuildContext context)=> const NotificationScreen());
       case RoutesName.profile:
         return MaterialPageRoute(builder:(BuildContext context)=> ProfileScreen());
       case RoutesName.editProfile:
@@ -56,6 +67,9 @@ class Routes {
             name: args['name'],
             image: args['image'],
             role: args['role'],
+            bookingId: args['bookingId'],
+            providerId: args['providerId'],
+            userId: args['userId'],
           ),
         );
       default:

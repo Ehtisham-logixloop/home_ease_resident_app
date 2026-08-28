@@ -183,6 +183,7 @@ class AuthViewModel extends ChangeNotifier {
           'email': _resetEmail!,
           'pin': _resetPin!,
           'newPassword': passwordController.text.trim(),
+          'confirmPassword': passwordController.text.trim(),
         },
       );
 

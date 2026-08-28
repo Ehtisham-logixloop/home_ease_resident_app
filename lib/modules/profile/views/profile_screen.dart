@@ -67,6 +67,9 @@ class ProfileScreen extends StatelessWidget {
               ),
               const Divider(),
               ListTile(
+                onTap: () {
+                  Get.toNamed(RoutesName.forgot);
+                },
                 leading: Icon(Icons.local_mall_outlined,
                     color: isDark ? Colors.white70 : Colors.black87),
                 title: Text("Change Password",
