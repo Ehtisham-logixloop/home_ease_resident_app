@@ -3,7 +3,7 @@ import '../data/models/category_model.dart';
 
 
 class HomeViewModel extends ChangeNotifier {
-  String location = "Gujranwala Garden Town";
+  String location = "Gujranwala ";
 
   List<CategoryModel> categories = [
     CategoryModel(name: "Plumber", images: "assets/images/plumber.png"),

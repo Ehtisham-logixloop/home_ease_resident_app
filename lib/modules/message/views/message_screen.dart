@@ -40,44 +40,6 @@ class _MessageScreenState extends State<MessageScreen> {
         ),
         centerTitle: true,
         iconTheme: IconThemeData(color: titleColor),
-        actions: [
-          Consumer<MessagesViewModel>(
-            builder: (context, vm, child) {
-              return Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_outlined, color: Colors.blue),
-                    onPressed: () {
-                      Navigator.pushNamed(context, RoutesName.notifications);
-                    },
-                  ),
-                  if (vm.unreadNotificationCount > 0)
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '${vm.unreadNotificationCount}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [

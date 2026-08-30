@@ -1,6 +1,6 @@
 
 class AppUrl {
-  static const String baseUrl = 'http://192.168.0.101:5000/api';
+  static const String baseUrl = 'http://192.168.100.67:5000/api';
 
   static const String register = '$baseUrl/auth/register';
   static const String login = '$baseUrl/auth/login';
@@ -11,5 +11,9 @@ class AppUrl {
   static const String sendMessage = '$baseUrl/chat/send';
   static String getChat(String bookingId) => '$baseUrl/chat/$bookingId';
   static const String notifications = '$baseUrl/notifications';
+
+  static const String providers = '$baseUrl/providers';
+  static const String allProviders = '$baseUrl/provider/all';
+  static const String createBooking = '$baseUrl/bookings';
 }
 

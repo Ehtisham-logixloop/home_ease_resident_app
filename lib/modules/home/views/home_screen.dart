@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../core/res/app_url.dart';
+import '../../../core/utils/routes/routes_name.dart';
+import '../../../core/utils/ui_helper.dart';
 import '../../../data/models/category_model.dart';
 import '../../../data/models/service_provider_model.dart';
+import '../../../data/services/api_service.dart';
+import '../../../view_model/message_view_model.dart';
 import '../../Bottom_navigation/views/bottom_navigation.dart';
 import '../views/service_providers_screen.dart';
 
@@ -38,6 +44,9 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     filteredCategories = allCategories;
     _searchController.addListener(_onSearchChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<MessagesViewModel>(context, listen: false).fetchNotifications();
+    });
   }
 
   @override
@@ -59,52 +68,47 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _onCategoryTap(String categoryName) {
-    final List<ServiceProvider> providers = [
-      ServiceProvider(
-        id: "1",
-        name: "Ali Raza",
-        profession: categoryName,
-        rating: 4.8,
-        pricePerHour: 500,
-        image: "assets/images/user.png",
-        description: "Expert in fixing pipes and water leaks. 8 years of experience.",
-        yearsOfExperience: 8,
-        servicesOffered: ["Pipe Repair", "Water Leak Fix", "Drain Cleaning"],
-      ),
-      ServiceProvider(
-        id: "2",
-        name: "Ahmed Khan",
-        profession: categoryName,
-        rating: 4.5,
-        pricePerHour: 450,
-        image: "assets/images/user.png",
-        description: "Reliable and professional service.",
-        yearsOfExperience: 5,
-        servicesOffered: ["Basic Repairs", "Installation"],
-      ),
-      ServiceProvider(
-        id: "3",
-        name: "Hassan Ali",
-        profession: categoryName,
-        rating: 4.9,
-        pricePerHour: 600,
-        image: "assets/images/user.png",
-        description: "Top-rated professional with excellent reviews.",
-        yearsOfExperience: 10,
-        servicesOffered: ["Emergency Repairs", "Full Service"],
-      ),
-    ];
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ServiceProvidersScreen(
-          categoryName: categoryName,
-          providers: providers,
-        ),
-      ),
+  void _onCategoryTap(String categoryName) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
+    
+    try {
+      final response = await ApiService().getRequest(AppUrl.allProviders, requireAuth: true);
+      if (mounted) Navigator.pop(context); // remove dialog
+      
+      if (response['success'] == true) {
+        final List<dynamic> providersJson = response['data']['providers'] ?? [];
+        final List<ServiceProvider> allProviders = providersJson
+            .map((json) => ServiceProvider.fromJson(json))
+            .toList();
+            
+        final filteredProviders = allProviders
+            .where((p) => p.profession == categoryName)
+            .toList();
+
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ServiceProvidersScreen(
+                categoryName: categoryName,
+                providers: filteredProviders,
+              ),
+            ),
+          );
+        }
+      } else {
+        if (mounted) UIHelper.showFlushbarError(context, response['message'] ?? "Failed to load providers");
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        UIHelper.showFlushbarError(context, e.toString());
+      }
+    }
   }
 
   @override
@@ -114,7 +118,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final subColor = isDark ? Colors.white60 : Colors.black54;
     final tileColor = isDark ? const Color(0xFF2A2A2A) : Colors.grey.shade200;
     final searchFill = isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade100;
-    final cardBg = Theme.of(context).cardColor;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -128,18 +131,63 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Image.asset("assets/images/stash.png", width: 30, height: 30),
                   const SizedBox(width: 6),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("My Location",
-                          style: TextStyle(color: subColor)),
-                      Text(
-                        location,
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold, color: textBody),
-                      ),
-                    ],
-                  )
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("My Location",
+                            style: TextStyle(color: subColor)),
+                        Text(
+                          location,
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold, color: textBody),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Consumer<MessagesViewModel>(
+                    builder: (context, vm, child) {
+                      final unread = vm.unreadNotificationCount;
+                      return Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, RoutesName.notifications);
+                            },
+                            icon: Icon(
+                              unread > 0 ? Icons.notifications_active : Icons.notifications_outlined,
+                              color: Colors.blue,
+                              size: 28,
+                            ),
+                          ),
+                          if (unread > 0)
+                            Positioned(
+                              right: 6,
+                              top: 6,
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    unread > 99 ? '99+' : '$unread',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
               const SizedBox(height: 20),

@@ -32,6 +32,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   String? _currentUserId;
   Timer? _refreshTimer;
+  Timer? _autoReplyTimer;
   bool _isSending = false;
 
   @override
@@ -45,6 +46,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final effectiveBookingId = widget.bookingId ?? '1';
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final vm = Provider.of<MessagesViewModel>(context, listen: false);
+      vm.setActiveChat(effectiveBookingId);
       vm.fetchChatMessages(effectiveBookingId);
     });
     _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
@@ -87,6 +89,15 @@ class _ChatScreenState extends State<ChatScreen> {
     } else {
       _messageController.clear();
       _scrollToBottom();
+
+      vm.simulateProviderReply(
+        bookingId: bookingId,
+        providerName: widget.name,
+        providerRole: widget.role,
+        providerImage: widget.image,
+        lastUserMessage: text,
+        receiverId: senderId,
+      );
     }
     setState(() => _isSending = false);
   }
@@ -119,27 +130,60 @@ class _ChatScreenState extends State<ChatScreen> {
         elevation: 1,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: titleColor),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            final vm = Provider.of<MessagesViewModel>(context, listen: false);
+            vm.setActiveChat(null);
+            Navigator.pop(context);
+          },
         ),
         title: Row(
           children: [
-            CircleAvatar(
-              backgroundImage: AssetImage(widget.image),
+            Stack(
+              children: [
+                CircleAvatar(
+                  backgroundImage: AssetImage(widget.image),
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                      border: Border.fromBorderSide(
+                        BorderSide(color: Colors.white, width: 2),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.name,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: titleColor),
-                  ),
-                  Text(
-                    widget.role,
-                    style: TextStyle(color: subColor, fontSize: 12),
-                  ),
-                ],
+              child: Consumer<MessagesViewModel>(
+                builder: (context, vm, child) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.name,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: titleColor),
+                      ),
+                      Text(
+                        vm.isProviderTyping
+                            ? 'typing...'
+                            : 'Online • ${widget.role}',
+                        style: TextStyle(
+                          color: vm.isProviderTyping ? Colors.green : subColor,
+                          fontSize: 12,
+                          fontStyle: vm.isProviderTyping ? FontStyle.italic : FontStyle.normal,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],
@@ -154,13 +198,39 @@ class _ChatScreenState extends State<ChatScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 final messages = vm.messages;
+                final showTyping = vm.isProviderTyping;
                 return ListView.builder(
                   controller: _scrollController,
                   reverse: true,
                   padding: const EdgeInsets.all(16),
-                  itemCount: messages.length,
+                  itemCount: messages.length + (showTyping ? 1 : 0),
                   itemBuilder: (context, index) {
-                    final msg = messages[messages.length - 1 - index];
+                    if (showTyping && index == 0) {
+                      return Align(
+                        alignment: Alignment.centerLeft,
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: otherBubble,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _typingDot(1),
+                              const SizedBox(width: 4),
+                              _typingDot(2),
+                              const SizedBox(width: 4),
+                              _typingDot(3),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    final msgIndex = showTyping ? index - 1 : index;
+                    final msg = messages[messages.length - 1 - msgIndex];
                     final isMe = _isMessageFromMe(msg);
                     return Align(
                       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -185,12 +255,25 @@ class _ChatScreenState extends State<ChatScreen> {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              msg.time,
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: isMe ? Colors.white70 : subColor,
-                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  msg.time,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: isMe ? Colors.white70 : subColor,
+                                  ),
+                                ),
+                                if (isMe) ...[
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.done_all,
+                                    size: 12,
+                                    color: isMe ? Colors.white70 : subColor,
+                                  ),
+                                ],
+                              ],
                             ),
                           ],
                         ),
@@ -209,6 +292,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: TextField(
                     controller: _messageController,
                     style: TextStyle(color: titleColor),
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _sendMessage(),
                     decoration: InputDecoration(
                       hintText: 'Type a message...',
                       hintStyle: TextStyle(color: subColor),
@@ -257,9 +342,36 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  Widget _typingDot(int order) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 600 + order * 200),
+      curve: Curves.easeInOut,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: 0.3 + (value * 0.7),
+          child: Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              color: Colors.grey,
+              shape: BoxShape.circle,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _autoReplyTimer?.cancel();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        Provider.of<MessagesViewModel>(context, listen: false).setActiveChat(null);
+      } catch (_) {}
+    });
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();

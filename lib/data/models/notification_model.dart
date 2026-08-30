@@ -56,6 +56,32 @@ class NotificationModel {
     };
   }
 
+  NotificationModel copyWith({
+    String? id,
+    String? userId,
+    String? title,
+    String? body,
+    String? type,
+    String? relatedId,
+    String? relatedType,
+    bool? isRead,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return NotificationModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      type: type ?? this.type,
+      relatedId: relatedId ?? this.relatedId,
+      relatedType: relatedType ?? this.relatedType,
+      isRead: isRead ?? this.isRead,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   String get formattedTime {
     if (createdAt == null) return '';
     final now = DateTime.now();

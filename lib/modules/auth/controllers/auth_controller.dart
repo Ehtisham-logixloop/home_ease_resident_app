@@ -139,7 +139,7 @@ class AuthController extends GetxController {
       if (response['success']) {
         _resetEmail = email;
         otpController.clear();
-        UIHelper.showFlushbarSuccess(Get.context!, response['data']['message'] ?? "OTP sent successfully");
+        UIHelper.showFlushbarSuccess(Get.context!, response['message'] ?? "OTP sent successfully");
         Get.offNamed(RoutesName.pin);
         return true;
       } else {
@@ -211,7 +211,7 @@ class AuthController extends GetxController {
       );
 
       if (response['success']) {
-        UIHelper.showFlushbarSuccess(Get.context!, response['data']['message'] ?? "Password reset successfully");
+        UIHelper.showFlushbarSuccess(Get.context!, response['message'] ?? "Password reset successfully");
         clearControllers();
         _resetEmail = null;
         _resetPin = null;

@@ -61,21 +61,33 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   void _onTapNotification(NotificationModel notification) {
+    final vm = Provider.of<MessagesViewModel>(context, listen: false);
+    if (notification.id != null) {
+      vm.markNotificationRead(notification.id!);
+    }
     if (notification.relatedType == 'booking' &&
         notification.relatedId != null &&
         notification.relatedId!.isNotEmpty) {
-      Navigator.pushNamed(
-        context,
-        RoutesName.chat,
-        arguments: {
-          'name': 'Service Provider',
-          'image': 'assets/images/worker.png',
-          'role': notification.type,
-          'bookingId': notification.relatedId,
-          'providerId': null,
-          'userId': null,
-        },
-      );
+      if (notification.type == 'booking_accepted' ||
+          notification.type == 'booking_rejected') {
+        Navigator.pushNamed(
+          context,
+          RoutesName.booking,
+        );
+      } else {
+        Navigator.pushNamed(
+          context,
+          RoutesName.chat,
+          arguments: {
+            'name': 'Service Provider',
+            'image': 'assets/images/worker.png',
+            'role': notification.type,
+            'bookingId': notification.relatedId,
+            'providerId': null,
+            'userId': null,
+          },
+        );
+      }
     }
   }
 
@@ -107,6 +119,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
               return IconButton(
                 icon: const Icon(Icons.done_all, color: Colors.blue),
                 onPressed: () {
+                  Provider.of<MessagesViewModel>(context, listen: false)
+                      .markAllNotificationsRead();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('All notifications marked as read')),
                   );
@@ -139,83 +153,104 @@ class _NotificationScreenState extends State<NotificationScreen> {
           }
           return RefreshIndicator(
             onRefresh: () => vm.fetchNotifications(),
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
               itemCount: items.length,
-              separatorBuilder: (context, index) =>
-                  Divider(color: dividerColor, height: 1, indent: 72),
               itemBuilder: (context, index) {
                 final n = items[index];
-                final bg = n.isRead ? cardBg : unreadBg;
-                return InkWell(
-                  onTap: () => _onTapNotification(n),
-                  child: Container(
-                    color: bg,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: _colorForType(n.type).withValues(alpha: 0.12),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            _iconForType(n.type),
-                            color: _colorForType(n.type),
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                
+                final isUnread = !n.isRead;
+                final cardColor = isDark 
+                    ? (isUnread ? const Color(0xFF233040) : const Color(0xFF1E1E1E))
+                    : (isUnread ? Colors.blue.shade50 : Colors.white);
+                final shadowColor = isDark ? Colors.black45 : Colors.grey.shade200;
+                
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: shadowColor,
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                    border: isUnread 
+                      ? Border.all(color: Colors.blue.withValues(alpha: 0.5), width: 1.5)
+                      : Border.all(color: isDark ? Colors.white12 : Colors.grey.shade300, width: 1),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () => _onTapNotification(n),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: _colorForType(n.type).withValues(alpha: 0.15),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _iconForType(n.type),
+                                color: _colorForType(n.type),
+                                size: 26,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                    child: Text(
-                                      n.title,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontWeight:
-                                            n.isRead ? FontWeight.normal : FontWeight.bold,
-                                        color: titleColor,
-                                        fontSize: 15,
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          n.title,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
+                                            color: titleColor,
+                                            fontSize: 16,
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        n.formattedTime,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: isUnread ? Colors.blue : subColor,
+                                          fontWeight: isUnread ? FontWeight.bold : FontWeight.normal,
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                  const SizedBox(height: 6),
                                   Text(
-                                    n.formattedTime,
-                                    style: TextStyle(fontSize: 11, color: subColor),
-                                  ),
-                                  if (!n.isRead) ...[
-                                    const SizedBox(width: 6),
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.blue,
-                                        shape: BoxShape.circle,
-                                      ),
+                                    n.body,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: isUnread ? (isDark ? Colors.white70 : Colors.black87) : subColor, 
+                                      fontSize: 13,
+                                      height: 1.4,
                                     ),
-                                  ],
+                                  ),
                                 ],
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                n.body,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: subColor, fontSize: 13),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 );

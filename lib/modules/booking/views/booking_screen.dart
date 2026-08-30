@@ -1,9 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
+import '../../../core/res/app_url.dart';
 import '../../../core/services/local_storage_service.dart';
+import '../../../core/utils/ui_helper.dart';
 import '../../../data/models/service_provider_model.dart';
+import '../../../data/services/api_service.dart';
 import '../../../core/utils/routes/routes_name.dart';
 import '../../Bottom_navigation/views/bottom_navigation.dart';
 
@@ -101,50 +102,7 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
   TimeOfDay? selectedTime;
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
-  XFile? _imageFile;
   LatLng? _selectedLocation;
-  final ImagePicker _picker = ImagePicker();
-
-  Future<void> _pickImage(ImageSource source) async {
-    final XFile? pickedFile = await _picker.pickImage(source: source);
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = pickedFile;
-      });
-    }
-  }
-
-  void _showImagePicker(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Theme.of(context).cardColor,
-      builder: (BuildContext bc) {
-        final isDark = Theme.of(bc).brightness == Brightness.dark;
-        final titleColor = isDark ? Colors.white : Colors.black;
-        return SafeArea(
-          child: Wrap(
-            children: <Widget>[
-              ListTile(
-                  leading: Icon(Icons.photo_library, color: titleColor),
-                  title: Text('Photo Library', style: TextStyle(color: titleColor)),
-                  onTap: () {
-                    _pickImage(ImageSource.gallery);
-                    Navigator.of(context).pop();
-                  }),
-              ListTile(
-                leading: Icon(Icons.photo_camera, color: titleColor),
-                title: Text('Camera', style: TextStyle(color: titleColor)),
-                onTap: () {
-                  _pickImage(ImageSource.camera);
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -172,10 +130,16 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
     }
   }
 
-  void _confirmBooking() {
+  void _confirmBooking() async {
     if (selectedDate == null || selectedTime == null || _addressController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all required fields')),
+      );
+      return;
+    }
+    if (_selectedLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select GPS location')),
       );
       return;
     }
@@ -183,84 +147,121 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        final titleColor = isDark ? Colors.white : Colors.black;
-        final subColor = isDark ? Colors.white70 : Colors.grey;
-        return Dialog(
-          backgroundColor: Theme.of(context).cardColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Container(
-                      width: 70,
-                      height: 70,
-                      decoration: const BoxDecoration(
-                        color: Colors.blue,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final payload = {
+        'provider_id': widget.provider.id,
+        'category': widget.categoryName,
+        'date': selectedDate!.toIso8601String(),
+        'time': '${selectedTime!.hour}:${selectedTime!.minute}',
+        'address': _addressController.text,
+        'notes': _notesController.text,
+        'latitude': _selectedLocation!.latitude,
+        'longitude': _selectedLocation!.longitude,
+      };
+
+      final response = await ApiService().postRequest(
+        AppUrl.createBooking,
+        payload,
+        requireAuth: true,
+      );
+
+      if (mounted) Navigator.pop(context); // close loading
+
+      if (response['success'] == true) {
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final titleColor = isDark ? Colors.white : Colors.black;
+            final subColor = isDark ? Colors.white70 : Colors.grey;
+            return Dialog(
+              backgroundColor: Theme.of(context).cardColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.check, color: Colors.white, size: 40),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Request Send\nSuccessfully',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: titleColor,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Congratulations\nYour Request has been Send',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: subColor,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      child: Center(
+                        child: Container(
+                          width: 70,
+                          height: 70,
+                          decoration: const BoxDecoration(
+                            color: Colors.blue,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.check, color: Colors.white, size: 40),
+                        ),
                       ),
                     ),
-                    child: const Text(
-                      'Done',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Request Send\nSuccessfully',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: titleColor,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Congratulations\nYour Request has been Send',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: subColor,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Done',
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
-      },
-    );
+      } else {
+        if (mounted) UIHelper.showFlushbarError(context, response['message'] ?? "Failed to book service");
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // close loading
+        UIHelper.showFlushbarError(context, e.toString());
+      }
+    }
   }
 
   @override
@@ -422,39 +423,7 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Upload Picture',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: titleColor),
-            ),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () => _showImagePicker(context),
-              child: Container(
-                width: double.infinity,
-                height: 120,
-                decoration: BoxDecoration(
-                  border: Border.all(color: fieldBorder),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: _imageFile == null
-                    ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.camera_alt_outlined, size: 40, color: placeholderColor),
-                    const SizedBox(height: 8),
-                    Text('Upload a Picture', style: TextStyle(color: placeholderColor)),
-                  ],
-                )
-                    : ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.file(
-                    File(_imageFile!.path),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ),
+
             const SizedBox(height: 16),
             Text(
               'Select GPS Location',
