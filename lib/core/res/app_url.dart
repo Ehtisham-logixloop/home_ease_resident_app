@@ -15,5 +15,7 @@ class AppUrl {
   static const String providers = '$baseUrl/providers';
   static const String allProviders = '$baseUrl/provider/all';
   static const String createBooking = '$baseUrl/bookings';
+  
+  static const String userProfile = '$baseUrl/user/profile';
 }
 

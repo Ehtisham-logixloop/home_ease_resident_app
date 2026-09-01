@@ -32,6 +32,34 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> putRequest(
+    String url,
+    Map<String, dynamic> data, {
+    bool requireAuth = false,
+  }) async {
+    try {
+      Map<String, String> headers = {
+        'Content-Type': 'application/json',
+      };
+
+      if (requireAuth) {
+        final token = await LocalStorageService.getToken();
+        if (token != null) {
+          headers['Authorization'] = 'Bearer $token';
+        }
+      }
+
+      final response = await http.put(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode(data),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      throw Exception('Failed to connect: $e');
+    }
+  }
+
   Future<Map<String, dynamic>> getRequest(
     String url, {
     bool requireAuth = false,

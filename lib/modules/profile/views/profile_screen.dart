@@ -6,6 +6,7 @@ import '../../../core/utils/routes/routes_name.dart';
 import '../../../view_model/theme_view_model.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../Bottom_navigation/views/bottom_navigation.dart';
+import '../controllers/profile_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -13,6 +14,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authController = Get.find<AuthController>();
+    final profileController = Get.put(ProfileController());
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -51,7 +53,34 @@ class ProfileScreen extends StatelessWidget {
                   )
                 ],
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 15),
+              Obx(() {
+                if (profileController.isLoading.value) {
+                   return const CircularProgressIndicator();
+                }
+                final user = profileController.profileModel.value;
+                return Column(
+                  children: [
+                    Text(
+                      user?.name ?? "User Name",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      user?.email ?? "user@email.com",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.white70 : Colors.black54,
+                      ),
+                    ),
+                  ],
+                );
+              }),
+              const SizedBox(height: 25),
               ListTile(
                 onTap: () {
                   Navigator.pushNamed(context, RoutesName.editProfile);
